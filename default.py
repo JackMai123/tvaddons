@@ -10,6 +10,7 @@ from urllib.parse import urlencode, parse_qsl
 # Get the plugin url in plugin:// notation.
 _URL = sys.argv[0]
 
+
 def list_videos(url):
     try:
         # Send a request to the server using the provided URL
@@ -36,6 +37,12 @@ def list_videos(url):
                 list_item.setPath(play_url)
                 list_item.setProperty('IsPlayable', 'true')
                 xbmcplugin.addDirectoryItem(handle=addon_handle, url=f"{_URL}?status=playable&href={play_url}", listitem=list_item, isFolder=False)
+            elif status == 'playable1':
+                play_url = video.get('href', '')
+                list_item.setPath(play_url)
+                list_item.setProperty('IsPlayable', 'true') 
+                xbmcplugin.addDirectoryItem(handle=addon_handle, url=f"{_URL}?status=playable1&href={play_url}", listitem=list_item, isFolder=False)
+    
             else:
                 # If the status is not "playable", add a browsable URL
                 browse_url = video.get('href', '')
@@ -60,6 +67,18 @@ def router(paramstring):
         if params.get('status') == 'playable':
             video_path = params['href']
             play_video(video_path)
+        elif params.get('status') == 'playable1':
+            # If the user clicked on a browsable item, navigate to the provided URL and list videos
+            browse_url = params['href']        
+            response = requests.get(browse_url)
+            response.raise_for_status()  # Raise an exception for bad status codes
+            json_data = response.json()
+            videos = json_data.get('data', [])  # Extract the 'data' array from the JSON
+            play_url = videos[0].get('href', '')
+            list_item = xbmcgui.ListItem(label=videos[0].get('title', 'Unknown Title'))
+            list_item.setProperty('IsPlayable', 'true')
+            play_video(play_url)
+
         elif params.get('status') == 'browse':
             # If the user clicked on a browsable item, navigate to the provided URL and list videos
             browse_url = params['href']

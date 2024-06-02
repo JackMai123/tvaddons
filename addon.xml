@@ -14,5 +14,8 @@
     <summary>Template Video add-on</summary>
     <description>This is a base addon to build from.</description>
     <platform>all</platform>
+    <assets>
+      <icon>icon.jpg</icon>
+    </assets>
   </extension>
 </addon>
