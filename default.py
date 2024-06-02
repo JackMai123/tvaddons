@@ -12,6 +12,13 @@ _URL = sys.argv[0]
 
 
 def list_videos(url):
+
+    # Set plugin category. It is displayed in some skins as the name
+    # of the current section.
+     # Set plugin content. It allows Kodi to select appropriate views
+    # for this type of content.
+    xbmcplugin.setContent(addon_handle, 'videos')
+
     try:
         # Send a request to the server using the provided URL
         response = requests.get(url)
@@ -27,7 +34,7 @@ def list_videos(url):
                 'icon': video.get('imageUrl', ''),
                 'fanart': video.get('imageUrl', '')
             })
-            list_item.setInfo('video', {'title': video.get('title', 'Unknown Title')})
+            list_item.setInfo('video', {'title': video.get('title', 'Unknown Title'),'mediatype': 'video'})
 
             # Check if the video is playable or browsable
             status = video.get('status')
@@ -51,6 +58,10 @@ def list_videos(url):
     except requests.RequestException as e:
         # Handle request errors
         xbmcgui.Dialog().ok('Error', f'Failed to fetch videos: {e}')
+
+
+    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
+    # xbmcplugin.addSortMethod(addon_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 
     # Signal the end of directory listing
     xbmcplugin.endOfDirectory(addon_handle)
