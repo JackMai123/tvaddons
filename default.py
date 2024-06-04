@@ -12,11 +12,7 @@ _URL = sys.argv[0]
 
 
 def list_videos(url):
-
-    # Set plugin category. It is displayed in some skins as the name
-    # of the current section.
-     # Set plugin content. It allows Kodi to select appropriate views
-    # for this type of content.
+    # Set plugin content type
     xbmcplugin.setContent(addon_handle, 'videos')
 
     try:
@@ -28,13 +24,21 @@ def list_videos(url):
 
         # Add each video to the Kodi directory
         for video in videos:
-            list_item = xbmcgui.ListItem(label=video.get('title', 'Unknown Title'))
-            list_item.setArt({
-                'thumb': video.get('imageUrl', ''),
-                'icon': video.get('imageUrl', ''),
-                'fanart': video.get('imageUrl', '')
-            })
-            list_item.setInfo('video', {'title': video.get('title', 'Unknown Title'),'mediatype': 'video'})
+            title = video.get('title', 'Unknown Title')
+            image_url = video.get('imageUrl', '')
+            description = video.get('description', 'No description available')                        
+            rating = video.get('rating', 0)            
+            
+
+            list_item = xbmcgui.ListItem(label=title)
+            list_item.setArt({'thumb': image_url, 'icon': image_url, 'fanart': image_url})
+
+            # Create an InfoTagVideo object to set detailed video info
+            info_tag = list_item.getVideoInfoTag()
+            info_tag.setTitle(title)
+            info_tag.setPlot(description)                        
+            info_tag.setRating(rating)            
+            
 
             # Check if the video is playable or browsable
             status = video.get('status')
@@ -49,7 +53,6 @@ def list_videos(url):
                 list_item.setPath(play_url)
                 list_item.setProperty('IsPlayable', 'true') 
                 xbmcplugin.addDirectoryItem(handle=addon_handle, url=f"{_URL}?status=playable1&href={play_url}", listitem=list_item, isFolder=False)
-    
             else:
                 # If the status is not "playable", add a browsable URL
                 browse_url = video.get('href', '')
@@ -58,10 +61,6 @@ def list_videos(url):
     except requests.RequestException as e:
         # Handle request errors
         xbmcgui.Dialog().ok('Error', f'Failed to fetch videos: {e}')
-
-
-    # Add a sort method for the virtual folder items (alphabetically, ignore articles)
-    # xbmcplugin.addSortMethod(addon_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
 
     # Signal the end of directory listing
     xbmcplugin.endOfDirectory(addon_handle)
