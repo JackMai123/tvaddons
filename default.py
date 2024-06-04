@@ -74,31 +74,45 @@ def play_video(video_path):
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
-    if params:
-        if params.get('status') == 'playable':
-            video_path = params['href']
-            play_video(video_path)
-        elif params.get('status') == 'playable1':
-            # If the user clicked on a browsable item, navigate to the provided URL and list videos
-            browse_url = params['href']        
-            response = requests.get(browse_url)
-            response.raise_for_status()  # Raise an exception for bad status codes
-            json_data = response.json()
-            videos = json_data.get('data', [])  # Extract the 'data' array from the JSON
-            play_url = videos[0].get('href', '')
-            list_item = xbmcgui.ListItem(label=videos[0].get('title', 'Unknown Title'))
-            list_item.setProperty('IsPlayable', 'true')
-            play_video(play_url)
+    status = params.pop('status', None)
+    href = params.pop('href', None)
 
-        elif params.get('status') == 'browse':
-            # If the user clicked on a browsable item, navigate to the provided URL and list videos
-            browse_url = params['href']
-            list_videos(browse_url)
+    # If 'page' is present, append it to the href
+    page = params.pop('page', None)
+    if page:
+        if href:
+            if '?' in href:
+                href += '&' + urlencode({'page': page})
+            else:
+                href += '?' + urlencode({'page': page})
+
+    if href:
+        print("Status Length:", len(status) if status else 0)  # Print the length of the status if it exists
+
+        if status == 'playable':
+            play_video(href)
+
+        elif status == 'playable1':
+            try:
+                response = requests.get(href)
+                response.raise_for_status()
+                json_data = response.json()
+                videos = json_data.get('data', [])
+                if videos:
+                    play_url = videos[0].get('href', '')
+                    list_item = xbmcgui.ListItem(label=videos[0].get('title', 'Unknown Title'))
+                    list_item.setProperty('IsPlayable', 'true')
+                    play_video(play_url)
+                else:
+                    print("No videos found")
+            except requests.RequestException as e:
+                print(f"Error fetching video data: {e}")
+
+        elif status == 'browse':
+            list_videos(href)
     else:
-        # If no action specified, list initial videos
-        initial_url = "http://192.168.1.100:4000/tv"  # Initial URL to fetch videos
+        initial_url = "http://192.168.1.100:4000/tv"
         list_videos(initial_url)
-
 
 if __name__ == '__main__':
     addon = xbmcaddon.Addon()
