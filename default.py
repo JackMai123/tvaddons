@@ -37,8 +37,11 @@ def list_videos(url):
             info_tag = list_item.getVideoInfoTag()
             info_tag.setTitle(title)
             info_tag.setPlot(description)                        
-            info_tag.setRating(rating)            
-            
+            try:
+                info_tag.setRating(float(rating))
+            except ValueError:
+                info_tag.setRating(0.0)  # Set a default rating if conversion fails
+       
 
             # Check if the video is playable or browsable
             status = video.get('status')
