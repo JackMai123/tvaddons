@@ -113,7 +113,7 @@ def router(paramstring):
         elif status == 'browse':
             list_videos(href)
     else:
-        initial_url = "http://192.168.1.100:4000/tv"
+        initial_url = "http://192.168.1.10:4000/tv"
         list_videos(initial_url)
 
 if __name__ == '__main__':
